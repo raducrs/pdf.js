@@ -206,7 +206,7 @@ class TextLayerBuilder {
     return result;
   }
 
-  _convertEntityMatches(matches, matchesLength) {
+  _convertEntityMatches(matches, matchesLength, queriesId, pageId) {
     console.log('_convertEntityMatches')
     if (!matches) {
       return [];
@@ -217,10 +217,12 @@ class TextLayerBuilder {
     var i = 0,
       iIndex = 0;
     var end = textContentItemsStr.length - 1;
-    var queryLen = findController.state.query.length;
+
     var result = [];
 
     for (var m = 0, mm = matches.length; m < mm; m++) {
+      var qId = queriesId[m];
+      var queryLen = findController.state.pages[pageId].queries[qId].query.length;
       var matchIdx = matches[m];
 
       while (i !== end && matchIdx >= iIndex + textContentItemsStr[i].length) {
@@ -485,7 +487,6 @@ class TextLayerBuilder {
       textDivs = this.textDivs;
     var clearedUntilDivIdx = -1;
 
-    console.log(findController,matches)
 
     for (var i = 0, ii = matches.length; i < ii; i++) {
       var match = matches[i];
@@ -506,7 +507,9 @@ class TextLayerBuilder {
 
     var pageMatches = findController.pageMatches[pageIdx] || null;
     var pageMatchesLength = findController.pageMatchesLength[pageIdx] || null;
-    this.entityMatches = this._convertEntityMatches(pageMatches, pageMatchesLength);
+    var pageMatchesQueryId = findController.pageMatchesQueryId[pageIdx] || null;
+    console.log('pageMatches and length',pageMatches,pageMatchesLength);
+    this.entityMatches = this._convertEntityMatches(pageMatches, pageMatchesLength, pageMatchesQueryId, pageIdx);
 
     this._renderEntityMatches(this.entityMatches);
   }

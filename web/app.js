@@ -47,6 +47,7 @@ import { PDFViewer } from './pdf_viewer';
 import { SecondaryToolbar } from './secondary_toolbar';
 import { Toolbar } from './toolbar';
 import { ViewHistory } from './view_history';
+import {PDFFindEntityController} from "./pdf_find_entity_controller";
 
 const DEFAULT_SCALE_DELTA = 1.1;
 const DISABLE_AUTO_FETCH_LOADING_BAR_TIMEOUT = 5000; // ms
@@ -315,7 +316,7 @@ let PDFViewerApplication = {
     });
     this.findController = findController;
 
-    const findEntityController = new PDFFindController({
+    const findEntityController = new PDFFindEntityController({
       linkService: pdfLinkService,
       eventBus,
     });
@@ -1983,6 +1984,7 @@ function webViewerDocumentProperties() {
 }
 
 function webViewerFind(evt) {
+  console.log(evt);
   PDFViewerApplication.findController.executeCommand('find' + evt.type, {
     query: evt.query,
     phraseSearch: evt.phraseSearch,
@@ -1995,13 +1997,39 @@ function webViewerFind(evt) {
 
 function webViewerFindEntity() {
   console.log('webViewerFindEntity');
-  PDFViewerApplication.findEntityController.executeCommand('find', {
-    query:'a',
-    phraseSearch: false,
-    caseSensitive: false,
-    entireWord: false,
-    highlightAll: true
-  });
+  PDFViewerApplication.findEntityController.executeCommand('find', { pages: [{
+      queries: [{
+        query: 'a',
+        phraseSearch: false,
+        caseSensitive: false,
+        entireWord: false,
+        highlightAll: true
+      },{
+        query: 'b',
+        phraseSearch: false,
+        caseSensitive: false,
+        entireWord: false,
+        highlightAll: true
+      }]
+    },
+      {
+        queries: [{
+          query: 'c',
+          phraseSearch: false,
+          caseSensitive: false,
+          entireWord: false,
+          highlightAll: true
+        },{
+          query: 'd',
+          phraseSearch: false,
+          caseSensitive: false,
+          entireWord: false,
+          highlightAll: true
+        }]
+      }
+    ],
+    highlightAll: true},
+  );
 }
 
 //setTimeout(webViewerFindEntity, 5000);
