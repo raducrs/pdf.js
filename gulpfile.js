@@ -1191,7 +1191,7 @@ gulp.task('server', function () {
 
   var WebServer = require('./test/webserver.js').WebServer;
   var server = new WebServer();
-  server.port = 8888;
+  server.port = 7777;
   server.start();
 });
 

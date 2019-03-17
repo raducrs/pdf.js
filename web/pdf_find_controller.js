@@ -497,6 +497,8 @@ class PDFFindController {
 
     this._highlightMatches = true;
 
+    console.log('_nextMatch');
+
     if (this._dirtyMatch) {
       // Need to recalculate the matches, reset everything.
       this._dirtyMatch = false;
@@ -508,6 +510,8 @@ class PDFFindController {
       this._pageMatches.length = 0;
       this._pageMatchesLength.length = 0;
       this._matchesCountTotal = 0;
+
+      console.log('dirtyMatch');
 
       this._updateAllPages(); // Wipe out any previously highlighted matches.
 

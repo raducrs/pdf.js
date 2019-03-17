@@ -315,6 +315,12 @@ let PDFViewerApplication = {
     });
     this.findController = findController;
 
+    const findEntityController = new PDFFindController({
+      linkService: pdfLinkService,
+      eventBus,
+    });
+    this.findEntityController = findEntityController;
+
     const container = appConfig.mainContainer;
     const viewer = appConfig.viewerContainer;
     this.pdfViewer = new PDFViewer({
@@ -325,6 +331,7 @@ let PDFViewerApplication = {
       linkService: pdfLinkService,
       downloadManager,
       findController,
+      findEntityController,
       renderer: AppOptions.get('renderer'),
       enableWebGL: AppOptions.get('enableWebGL'),
       l10n: this.l10n,
@@ -1985,6 +1992,24 @@ function webViewerFind(evt) {
     findPrevious: evt.findPrevious,
   });
 }
+
+function webViewerFindEntity() {
+  console.log('webViewerFindEntity');
+  PDFViewerApplication.findEntityController.executeCommand('find', {
+    query:'a',
+    phraseSearch: false,
+    caseSensitive: false,
+    entireWord: false,
+    highlightAll: true
+  });
+}
+
+//setTimeout(webViewerFindEntity, 5000);
+window.addEventListener('keydown', function (event) {
+  if (event.keyCode === 81) {
+    webViewerFindEntity();
+  }
+}, true);
 
 function webViewerFindFromUrlHash(evt) {
   PDFViewerApplication.findController.executeCommand('find', {

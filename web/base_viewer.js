@@ -134,6 +134,7 @@ class BaseViewer {
     this.linkService = options.linkService || new SimpleLinkService();
     this.downloadManager = options.downloadManager || null;
     this.findController = options.findController || null;
+    this.findEntityController = options.findEntityController || null;
     this.removePageBorders = options.removePageBorders || false;
     this.textLayerMode = Number.isInteger(options.textLayerMode) ?
       options.textLayerMode : TextLayerMode.ENABLE;
@@ -473,6 +474,9 @@ class BaseViewer {
 
       if (this.findController) {
         this.findController.setDocument(pdfDocument); // Enable searching.
+      }
+      if (this.findEntityController) {
+        this.findEntityController.setDocument(pdfDocument); // Enable searching.
       }
       if (this.defaultRenderingQueue) {
         this.update();
@@ -984,6 +988,7 @@ class BaseViewer {
       pageIndex,
       viewport,
       findController: this.isInPresentationMode ? null : this.findController,
+      findEntityController: this.isInPresentationMode ? null : this.findEntityController,
       enhanceTextSelection: this.isInPresentationMode ? false :
                                                         enhanceTextSelection,
     });

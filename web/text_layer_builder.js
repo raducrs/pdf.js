@@ -37,7 +37,7 @@ const EXPAND_DIVS_TIMEOUT = 300; // ms
  */
 class TextLayerBuilder {
   constructor({ textLayerDiv, eventBus, pageIndex, viewport,
-                findController = null, enhanceTextSelection = false, }) {
+                findController = null, enhanceTextSelection = false, findEntityController = null}) {
     this.textLayerDiv = textLayerDiv;
     this.eventBus = eventBus || getGlobalEventBus();
     this.textContent = null;
@@ -47,6 +47,8 @@ class TextLayerBuilder {
     this.pageIdx = pageIndex;
     this.pageNumber = this.pageIdx + 1;
     this.matches = [];
+    this.entityMatches = [];
+    this.findEntityController = findEntityController;
     this.viewport = viewport;
     this.textDivs = [];
     this.findController = findController;
@@ -104,6 +106,7 @@ class TextLayerBuilder {
       this.textLayerDiv.appendChild(textLayerFrag);
       this._finishRendering();
       this._updateMatches();
+      this._updateEntityMatches();
     }, function (reason) {
       // Cancelled or failed to render text layer; skipping errors.
     });
@@ -112,6 +115,7 @@ class TextLayerBuilder {
       this._onUpdateTextLayerMatches = (evt) => {
         if (evt.pageIndex === this.pageIdx || evt.pageIndex === -1) {
           this._updateMatches();
+          this._updateEntityMatches();
         }
       };
       this.eventBus.on('updatetextlayermatches',
@@ -200,6 +204,146 @@ class TextLayerBuilder {
       result.push(match);
     }
     return result;
+  }
+
+  _convertEntityMatches(matches, matchesLength) {
+    console.log('_convertEntityMatches')
+    if (!matches) {
+      return [];
+    }
+
+    var findController = this.findEntityController,
+      textContentItemsStr = this.textContentItemsStr;
+    var i = 0,
+      iIndex = 0;
+    var end = textContentItemsStr.length - 1;
+    var queryLen = findController.state.query.length;
+    var result = [];
+
+    for (var m = 0, mm = matches.length; m < mm; m++) {
+      var matchIdx = matches[m];
+
+      while (i !== end && matchIdx >= iIndex + textContentItemsStr[i].length) {
+        iIndex += textContentItemsStr[i].length;
+        i++;
+      }
+
+      if (i === textContentItemsStr.length) {
+        console.error('Could not find a matching mapping');
+      }
+
+      var match = {
+        begin: {
+          divIdx: i,
+          offset: matchIdx - iIndex
+        }
+      };
+
+      if (matchesLength) {
+        matchIdx += matchesLength[m];
+      } else {
+        matchIdx += queryLen;
+      }
+
+      while (i !== end && matchIdx > iIndex + textContentItemsStr[i].length) {
+        iIndex += textContentItemsStr[i].length;
+        i++;
+      }
+
+      match.end = {
+        divIdx: i,
+        offset: matchIdx - iIndex
+      };
+      result.push(match);
+    }
+
+    return result;
+  }
+
+  _renderEntityMatches(matches) {
+    console.log('_renderEntityMatches',matches)
+    if (matches.length === 0) {
+      return;
+    }
+
+    var textContentItemsStr = this.textContentItemsStr,
+      textDivs = this.textDivs;
+    var isSelectedPage = true;
+    var selectedMatchIdx = 0;
+    var highlightAll = true;
+    var prevEnd = null;
+    var infinity = {
+      divIdx: -1,
+      offset: undefined
+    };
+
+    function beginText(begin, className) {
+      var divIdx = begin.divIdx;
+      textDivs[divIdx].textContent = '';
+      appendTextToDiv(divIdx, 0, begin.offset, className);
+    }
+
+    function appendTextToDiv(divIdx, fromOffset, toOffset, className) {
+      var div = textDivs[divIdx];
+      var content = textContentItemsStr[divIdx].substring(fromOffset, toOffset);
+      var node = document.createTextNode(content);
+
+      if (className) {
+        var span = document.createElement('span');
+        span.className = className;
+        span.appendChild(node);
+        div.appendChild(span);
+        return;
+      }
+
+      div.appendChild(node);
+    }
+
+    var i0 = selectedMatchIdx,
+      i1 = i0 + 1;
+
+    if (highlightAll) {
+      i0 = 0;
+      i1 = matches.length;
+    } else if (!isSelectedPage) {
+      return;
+    }
+
+    for (var i = i0; i < i1; i++) {
+      var match = matches[i];
+      var begin = match.begin;
+      var end = match.end;
+      var highlightSuffix ='';
+
+
+      if (!prevEnd || begin.divIdx !== prevEnd.divIdx) {
+        if (prevEnd !== null) {
+          appendTextToDiv(prevEnd.divIdx, prevEnd.offset, infinity.offset);
+        }
+
+        beginText(begin);
+      } else {
+        appendTextToDiv(prevEnd.divIdx, prevEnd.offset, begin.offset);
+      }
+
+      if (begin.divIdx === end.divIdx) {
+        appendTextToDiv(begin.divIdx, begin.offset, end.offset, 'highlight' + highlightSuffix);
+      } else {
+        appendTextToDiv(begin.divIdx, begin.offset, infinity.offset, 'highlight begin' + highlightSuffix);
+
+        for (var n0 = begin.divIdx + 1, n1 = end.divIdx; n0 < n1; n0++) {
+          textDivs[n0].className = 'highlight middle' + highlightSuffix;
+        }
+
+        beginText(end, 'highlight end' + highlightSuffix);
+      }
+
+      prevEnd = end;
+    }
+
+    if (prevEnd) {
+      appendTextToDiv(prevEnd.divIdx, prevEnd.offset, infinity.offset);
+    }
   }
 
   _renderMatches(matches) {
@@ -325,6 +469,46 @@ class TextLayerBuilder {
 
     this.matches = this._convertMatches(pageMatches, pageMatchesLength);
     this._renderMatches(this.matches);
+  }
+
+  _updateEntityMatches() {
+    console.log('_updateEntityMatches')
+
+    if (!this.renderingDone) {
+      return;
+    }
+
+    var findController = this.findEntityController,
+      matches = this.entityMatches,
+      pageIdx = this.pageIdx,
+      textContentItemsStr = this.textContentItemsStr,
+      textDivs = this.textDivs;
+    var clearedUntilDivIdx = -1;
+
+    console.log(findController,matches)
+
+    for (var i = 0, ii = matches.length; i < ii; i++) {
+      var match = matches[i];
+      var begin = Math.max(clearedUntilDivIdx, match.begin.divIdx);
+
+      for (var n = begin, end = match.end.divIdx; n <= end; n++) {
+        var div = textDivs[n];
+        div.textContent = textContentItemsStr[n];
+        div.className = '';
+      }
+
+      clearedUntilDivIdx = match.end.divIdx + 1;
+    }
+
+    if (!findController) {
+      return;
+    }
+
+    var pageMatches = findController.pageMatches[pageIdx] || null;
+    var pageMatchesLength = findController.pageMatchesLength[pageIdx] || null;
+    this.entityMatches = this._convertEntityMatches(pageMatches, pageMatchesLength);
+
+    this._renderEntityMatches(this.entityMatches);
   }
 
   /**
