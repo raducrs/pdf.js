@@ -411,9 +411,11 @@ class PDFFindEntityController {
     return true;
   }
 
-  _calculatePhraseMatch(query, pageIndex, pageContent, entireWord) {
+  _calculatePhraseMatch(query, pageIndex, pageContent, entireWord, queryId) {
     const matches = [];
     const queryLen = query.length;
+
+    const matchesWithLength = [];
 
     let matchIdx = -queryLen;
     while (true) {
@@ -425,8 +427,19 @@ class PDFFindEntityController {
         continue;
       }
       matches.push(matchIdx);
+
+      // Other searches do not, so we store the length.
+      matchesWithLength.push({
+        match: matchIdx,
+        matchLength: queryLen,
+        skipped: false,
+        queryId: queryId
+      });
+
     }
-    this._pageMatches[pageIndex] = matches;
+
+    this._prepareMatches(matchesWithLength, this._pageMatches[pageIndex],
+      this._pageMatchesLength[pageIndex], this._pageMatchesQueryId[pageIndex] );
   }
 
   _calculateWordMatch(query, pageIndex, pageContent, entireWord, queryId) {
@@ -471,9 +484,9 @@ class PDFFindEntityController {
   _calculateMatch(pageIndex) {
     let pageContent = this._pageContents[pageIndex];
     let queries = this._query;
-    if (pageIndex > 1){
-      return;
-    }
+    // if (pageIndex > 1){
+    //   return;
+    // }
 
     // Prepare arrays for storing the matches.
     this._pageMatchesLength[pageIndex] = [];

@@ -2002,16 +2002,19 @@ function webViewerFindEntity() {
         query: 'a',
         phraseSearch: false,
         caseSensitive: false,
-        entireWord: false,
+        entireWord: true,
         highlightAll: true
       },{
-        query: 'b',
-        phraseSearch: false,
+        query: 'bytecode sequence',
+        phraseSearch: true,
         caseSensitive: false,
         entireWord: false,
         highlightAll: true
       }]
     },
+        {
+          queries: []
+        },
       {
         queries: [{
           query: 'c',
