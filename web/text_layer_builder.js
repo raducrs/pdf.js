@@ -105,8 +105,9 @@ class TextLayerBuilder {
     this.textLayerRenderTask.promise.then(() => {
       this.textLayerDiv.appendChild(textLayerFrag);
       this._finishRendering();
-      this._updateMatches();
       this._updateEntityMatches();
+      this._updateMatches();
+
     }, function (reason) {
       // Cancelled or failed to render text layer; skipping errors.
     });
@@ -114,8 +115,9 @@ class TextLayerBuilder {
     if (!this._onUpdateTextLayerMatches) {
       this._onUpdateTextLayerMatches = (evt) => {
         if (evt.pageIndex === this.pageIdx || evt.pageIndex === -1) {
-          this._updateMatches();
           this._updateEntityMatches();
+          this._updateMatches();
+
         }
       };
       this.eventBus.on('updatetextlayermatches',
@@ -329,15 +331,15 @@ class TextLayerBuilder {
       }
 
       if (begin.divIdx === end.divIdx) {
-        appendTextToDiv(begin.divIdx, begin.offset, end.offset, 'highlight' + highlightSuffix);
+        appendTextToDiv(begin.divIdx, begin.offset, end.offset, 'highlightEntity' + highlightSuffix);
       } else {
-        appendTextToDiv(begin.divIdx, begin.offset, infinity.offset, 'highlight begin' + highlightSuffix);
+        appendTextToDiv(begin.divIdx, begin.offset, infinity.offset, 'highlightEntity begin' + highlightSuffix);
 
         for (var n0 = begin.divIdx + 1, n1 = end.divIdx; n0 < n1; n0++) {
-          textDivs[n0].className = 'highlight middle' + highlightSuffix;
+          textDivs[n0].className = 'highlightEntity middle' + highlightSuffix;
         }
 
-        beginText(end, 'highlight end' + highlightSuffix);
+        beginText(end, 'highlightEntity end' + highlightSuffix);
       }
 
       prevEnd = end;
@@ -367,6 +369,7 @@ class TextLayerBuilder {
     function beginText(begin, className) {
       let divIdx = begin.divIdx;
       textDivs[divIdx].textContent = '';
+      console.log('textDivs[divIdx]',textDivs[divIdx]);
       appendTextToDiv(divIdx, 0, begin.offset, className);
     }
 
@@ -488,18 +491,18 @@ class TextLayerBuilder {
     var clearedUntilDivIdx = -1;
 
 
-    for (var i = 0, ii = matches.length; i < ii; i++) {
-      var match = matches[i];
-      var begin = Math.max(clearedUntilDivIdx, match.begin.divIdx);
-
-      for (var n = begin, end = match.end.divIdx; n <= end; n++) {
-        var div = textDivs[n];
-        div.textContent = textContentItemsStr[n];
-        div.className = '';
-      }
-
-      clearedUntilDivIdx = match.end.divIdx + 1;
-    }
+    // for (var i = 0, ii = matches.length; i < ii; i++) {
+    //   var match = matches[i];
+    //   var begin = Math.max(clearedUntilDivIdx, match.begin.divIdx);
+    //
+    //   for (var n = begin, end = match.end.divIdx; n <= end; n++) {
+    //     var div = textDivs[n];
+    //     div.textContent = textContentItemsStr[n];
+    //     div.className = '';
+    //   }
+    //
+    //   clearedUntilDivIdx = match.end.divIdx + 1;
+    // }
 
     if (!findController) {
       return;

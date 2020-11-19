@@ -110,7 +110,7 @@ class PDFFindEntityController {
     this._eventBus = eventBus;
 
     this._reset();
-    eventBus.on('findbarclose', this._onFindBarClose.bind(this));
+    //eventBus.on('findbarclose', this._onFindBarClose.bind(this));
   }
 
   get highlightMatches() {
