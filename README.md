@@ -1,3 +1,19 @@
+# Contributions
+
+Extend the pdj.js package to higlight entities (referenced by text)
+
+## WIP 
+
+The entity is fixed in this poc
+
+## Changes
+
+The following are modified:
+- web/pdf_find_entity_controller.js
+- web/text_layer_builder.css
+- web/text_layer_builder.js
+
+
 # PDF.js [![Build Status](https://travis-ci.org/mozilla/pdf.js.svg?branch=master)](https://travis-ci.org/mozilla/pdf.js)
 
 PDF.js is a Portable Document Format (PDF) viewer that is built with HTML5.
